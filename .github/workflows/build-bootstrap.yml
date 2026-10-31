@@ -1,3 +1,4 @@
+
 name: Build LIFT Bootstrap
 
 on:
@@ -25,56 +26,38 @@ jobs:
       - name: Configure LIFT
         run: |
           cd termux-packages
-
           sed -i \
             -e 's/^TERMUX_APP__PACKAGE_NAME=.*/TERMUX_APP__PACKAGE_NAME="com.lift.terminal"/' \
             -e 's/^TERMUX__NAME=.*/TERMUX__NAME="LIFT"/' \
             scripts/properties.sh
 
-          grep -E '^(TERMUX_APP__PACKAGE_NAME|TERMUX__NAME)=' scripts/properties.sh
-
       - name: Prepare download retries
         run: |
           cd termux-packages
           chmod +x scripts/run-docker.sh
-
           ./scripts/run-docker.sh bash -c 'cat > ~/.curlrc <<EOF
           retry = 10
           retry-all-errors
           retry-delay = 5
           connect-timeout = 30
           max-time = 300
-          EOF
-          cat ~/.curlrc'
+          EOF'
 
       - name: Configure libgpg-error mirror
         run: |
           cd termux-packages
-
           FILE="packages/libgpg-error/build.sh"
-
           test -f "$FILE"
-
-          sed -i \
-            's#https://www.gnupg.org/ftp/gcrypt/libgpg-error/#https://mirrors.dotsrc.org/gcrypt/libgpg-error/#g' \
-            "$FILE"
-
-          grep 'TERMUX_PKG_SRCURL' "$FILE"
+          sed -i 's#https://www.gnupg.org/ftp/gcrypt/libgpg-error/#https://mirrors.dotsrc.org/gcrypt/libgpg-error/#g' "$FILE"
 
       - name: Configure libgcrypt mirror
         run: |
           cd termux-packages
-
           FILE="packages/libgcrypt/build.sh"
-
           test -f "$FILE"
+          sed -i 's#https://www.gnupg.org/ftp/gcrypt/libgcrypt/#https://mirrors.dotsrc.org/gcrypt/libgcrypt/#g' "$FILE"
 
-          sed -i \
-            's#https://www.gnupg.org/ftp/gcrypt/libgcrypt/#https://mirrors.dotsrc.org/gcrypt/libgcrypt/#g' \
-            "$FILE"
-
-          grep 'TERMUX_PKG_SRCURL' "$FILE"
-                - name: Build ARM64 Bootstrap
+      - name: Build ARM64 Bootstrap
         run: |
           cd termux-packages
           chmod +x scripts/run-docker.sh scripts/build-bootstraps.sh
@@ -85,4 +68,5 @@ jobs:
           connect-timeout = 30
           max-time = 300
           EOF
-          ./scripts/build-bootstraps.sh --architectures aarch64'
+          ./scripts/build-bootstraps.sh --architecture
+          s aarch64'
