@@ -18,14 +18,26 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Clone Termux Packages
-        run: |
-          git clone --depth 1 https://github.com/termux/termux-packages.git
+        run: git clone --depth 1 https://github.com/termux/termux-packages.git
 
       - name: Configure LIFT Package
         run: |
           cd termux-packages
           sed -i 's/^TERMUX_APP__PACKAGE_NAME=.*/TERMUX_APP__PACKAGE_NAME="com.lift.terminal"/' scripts/properties.sh
           grep 'TERMUX_APP__PACKAGE_NAME=' scripts/properties.sh
+
+      - name: Prepare reliable source downloads
+        run: |
+          cd termux-packages
+          chmod +x scripts/run-docker.sh
+          ./scripts/run-docker.sh bash -lc 'cat > ~/.curlrc <<EOF
+          retry = 10
+          retry-all-errors
+          retry-delay = 5
+          connect-timeout = 30
+          max-time = 300
+          EOF
+          cat ~/.curlrc'
 
       - name: Build ARM64 Bootstrap
         run: |
@@ -38,11 +50,11 @@ jobs:
           mkdir -p artifacts
           find termux-packages -type f -name '*.zip' \
             -not -path '*/.git/*' -exec cp {} artifacts/ \;
-          if [ -z "$(ls -A artifacts)" ]; then
+          test -n "$(ls -A artifacts)" || {
             echo "Bootstrap ZIP tidak dijumpai."
-            find termux-packages -maxdepth 3 -type d -name output -print
+            find termux-packages -maxdepth 4 -type d -name output -print
             exit 1
-          fi
+          }
           ls -lh artifacts
 
       - name: Upload Bootstrap Artifact
