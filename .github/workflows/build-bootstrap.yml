@@ -74,33 +74,15 @@ jobs:
             "$FILE"
 
           grep 'TERMUX_PKG_SRCURL' "$FILE"
-
-      - name: Build ARM64 Bootstrap
+                - name: Build ARM64 Bootstrap
         run: |
           cd termux-packages
-
-          chmod +x scripts/run-docker.sh
-          chmod +x scripts/build-bootstraps.sh
-
-          ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64 -f
-
-      - name: Collect Bootstrap Files
-        run: |
-          mkdir -p artifacts
-
-          if [ ! -s termux-packages/bootstrap-aarch64.zip ]; then
-            echo "Bootstrap ZIP tidak dijumpai!"
-            find termux-packages -maxdepth 3 -name '*.zip' -print
-            exit 1
-          fi
-
-          cp termux-packages/bootstrap-aarch64.zip artifacts/
-
-          ls -lh artifacts/
-
-      - name: Upload Bootstrap Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: LIFT-Bootstrap-aarch64
-          path: artifacts/bootstrap-aarch64.zip
-          if-no-files-found: error
+          chmod +x scripts/run-docker.sh scripts/build-bootstraps.sh
+          ./scripts/run-docker.sh bash -lc 'cat > ~/.curlrc <<EOF
+          retry = 10
+          retry-all-errors
+          retry-delay = 5
+          connect-timeout = 30
+          max-time = 300
+          EOF
+          ./scripts/build-bootstraps.sh --architectures aarch64'
