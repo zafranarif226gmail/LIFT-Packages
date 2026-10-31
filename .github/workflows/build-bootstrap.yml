@@ -39,6 +39,14 @@ jobs:
           EOF
           cat ~/.curlrc'
 
+      - name: Use alternate libgpg-error mirror
+        run: |
+          cd termux-packages
+          FILE="packages/libgpg-error/build.sh"
+          test -f "$FILE" || { echo "Recipe libgpg-error tidak dijumpai"; exit 1; }
+          sed -i 's#https://www.gnupg.org/ftp/gcrypt/libgpg-error/#https://mirrors.dotsrc.org/gcrypt/libgpg-error/#g' "$FILE"
+          grep -n 'TERMUX_PKG_SRCURL' "$FILE"
+
       - name: Build ARM64 Bootstrap
         run: |
           cd termux-packages
