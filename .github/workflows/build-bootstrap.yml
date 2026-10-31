@@ -1,0 +1,53 @@
+name: Build LIFT Bootstrap
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout LIFT Builder
+        uses: actions/checkout@v4
+
+      - name: Clone Termux Packages
+        run: |
+          git clone --depth 1 https://github.com/termux/termux-packages.git
+
+      - name: Configure LIFT Package
+        run: |
+          cd termux-packages
+          sed -i 's/^TERMUX_APP__PACKAGE_NAME=.*/TERMUX_APP__PACKAGE_NAME="com.lift.terminal"/' scripts/properties.sh
+          grep 'TERMUX_APP__PACKAGE_NAME=' scripts/properties.sh
+
+      - name: Build ARM64 Bootstrap
+        run: |
+          cd termux-packages
+          chmod +x scripts/run-docker.sh scripts/build-bootstraps.sh
+          ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64
+
+      - name: Collect Bootstrap Files
+        run: |
+          mkdir -p artifacts
+          find termux-packages -type f -name '*.zip' \
+            -not -path '*/.git/*' -exec cp {} artifacts/ \;
+          if [ -z "$(ls -A artifacts)" ]; then
+            echo "Bootstrap ZIP tidak dijumpai."
+            find termux-packages -maxdepth 3 -type d -name output -print
+            exit 1
+          fi
+          ls -lh artifacts
+
+      - name: Upload Bootstrap Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LIFT-Bootstrap-aarch64
+          path: artifacts/
+          if-no-files-found: error
