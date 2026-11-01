@@ -66,12 +66,4 @@ jobs:
         run: |
           cd termux-packages
           chmod +x scripts/run-docker.sh scripts/build-bootstraps.sh
-          ./scripts/run-docker.sh bash -lc 'cat > ~/.curlrc <<EOF
-          retry = 10
-          retry-all-errors
-          retry-delay = 5
-          connect-timeout = 30
-          max-time = 300
-          EOF
-          ./scripts/build-bootstraps.sh --architecture
-          s aarch64'
+          ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64 -f
