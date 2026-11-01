@@ -1,4 +1,3 @@
-
 name: Build LIFT Bootstrap
 
 on:
@@ -30,6 +29,7 @@ jobs:
             -e 's/^TERMUX_APP__PACKAGE_NAME=.*/TERMUX_APP__PACKAGE_NAME="com.lift.terminal"/' \
             -e 's/^TERMUX__NAME=.*/TERMUX__NAME="LIFT"/' \
             scripts/properties.sh
+          grep -E '^(TERMUX_APP__PACKAGE_NAME|TERMUX__NAME)=' scripts/properties.sh
 
       - name: Prepare download retries
         run: |
@@ -41,7 +41,8 @@ jobs:
           retry-delay = 5
           connect-timeout = 30
           max-time = 300
-          EOF'
+          EOF
+          cat ~/.curlrc'
 
       - name: Configure libgpg-error mirror
         run: |
@@ -49,6 +50,7 @@ jobs:
           FILE="packages/libgpg-error/build.sh"
           test -f "$FILE"
           sed -i 's#https://www.gnupg.org/ftp/gcrypt/libgpg-error/#https://mirrors.dotsrc.org/gcrypt/libgpg-error/#g' "$FILE"
+          grep 'TERMUX_PKG_SRCURL' "$FILE"
 
       - name: Configure libgcrypt mirror
         run: |
@@ -56,6 +58,7 @@ jobs:
           FILE="packages/libgcrypt/build.sh"
           test -f "$FILE"
           sed -i 's#https://www.gnupg.org/ftp/gcrypt/libgcrypt/#https://mirrors.dotsrc.org/gcrypt/libgcrypt/#g' "$FILE"
+          grep 'TERMUX_PKG_SRCURL' "$FILE"
 
       - name: Build ARM64 Bootstrap
         run: |
@@ -68,5 +71,5 @@ jobs:
           connect-timeout = 30
           max-time = 300
           EOF
-          ./scripts/build-bootstraps.sh --architecture
-          s aarch64'
+          ./scripts/build-bootstraps.sh --architectures aarch64'
+  
