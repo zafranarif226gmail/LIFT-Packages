@@ -62,6 +62,16 @@ jobs:
           sed -i 's#https://mirrors.dotsrc.org/gcrypt/libgcrypt/#https://gnupg.org/ftp/gcrypt/libgcrypt/#g' "$FILE"
           grep 'TERMUX_PKG_SRCURL' "$FILE"
 
+      - name: Align bootstrap with Termux bzip2 package
+        run: |
+          cd termux-packages
+          if [ ! -f packages/bzip2/build.sh ] &&
+             grep -Fq 'PACKAGES+=("bzip2")' scripts/build-bootstraps.sh; then
+            test -f packages/libbz2/build.sh
+            sed -i 's/PACKAGES+=("bzip2")/PACKAGES+=("libbz2")/' scripts/build-bootstraps.sh
+            grep -F 'PACKAGES+=("libbz2")' scripts/build-bootstraps.sh
+          fi
+
       - name: Build ARM64 Bootstrap
         run: |
           cd termux-packages
